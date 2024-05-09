@@ -4,8 +4,7 @@ source "http://rubygems.org"
 gemspec
 
 group :test do
-  # TODO: rimuovere l'indicazione del branch quando la MR su transaction_isolation verrà mergiata
-  gem 'transaction_isolation', git: 'https://github.com/alittlebit/transaction_isolation', branch: 'features/upgrade_to_ruby_3'
+  gem 'transaction_isolation', git: 'https://github.com/alittlebit/transaction_isolation'
   # Use the gem instead of a dated version bundled with Ruby
   gem 'minitest', '5.3.4'
   
@@ -17,8 +16,7 @@ group :test do
 end
 
 group :development do
-  # TODO: rimuovere l'indicazione del branch quando la MR su transaction_isolation verrà mergiata
-  gem 'transaction_isolation', git: 'https://github.com/alittlebit/transaction_isolation', branch: 'features/upgrade_to_ruby_3'
+  gem 'transaction_isolation', git: 'https://github.com/alittlebit/transaction_isolation'
   gem 'rake'
   # enhance irb
   gem 'awesome_print', :require => false
