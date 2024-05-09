@@ -17,6 +17,5 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_runtime_dependency "activerecord", ">= 3.0.11"
-  s.add_runtime_dependency "transaction_isolation", ">= 1.0.2"
+  s.add_runtime_dependency "activerecord", ">= 7.0.0"
 end

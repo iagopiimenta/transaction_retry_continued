@@ -41,7 +41,7 @@ class TransactionWithRetryTest < MiniTest::Unit::TestCase
       if first_run
         first_run = false
         message = "Deadlock found when trying to get lock"
-        raise ActiveRecord::TransactionIsolationConflict.new( ActiveRecord::StatementInvalid.new( message ), message )
+        raise ActiveRecord::TransactionIsolationConflict.new( message )
       end
       QueuedJob.create!( :job => 'is cool!' )
     end
@@ -90,7 +90,7 @@ class TransactionWithRetryTest < MiniTest::Unit::TestCase
       ActiveRecord::Base.transaction do
         run += 1
         message = "Deadlock found when trying to get lock"
-        raise ActiveRecord::TransactionIsolationConflict.new( ActiveRecord::StatementInvalid.new( message ), message )
+        raise ActiveRecord::TransactionIsolationConflict.new( message )
       end
     end
     
@@ -104,7 +104,7 @@ class TransactionWithRetryTest < MiniTest::Unit::TestCase
       ActiveRecord::Base.transaction(max_retries: 1) do
         run += 1
         message = "Deadlock found when trying to get lock"
-        raise ActiveRecord::TransactionIsolationConflict.new( ActiveRecord::StatementInvalid.new( message ), message )
+        raise ActiveRecord::TransactionIsolationConflict.new( message )
       end
     end
     
@@ -121,7 +121,7 @@ class TransactionWithRetryTest < MiniTest::Unit::TestCase
           if first_try
             first_try = false
             message = "Deadlock found when trying to get lock"
-            raise ActiveRecord::TransactionIsolationConflict.new( ActiveRecord::StatementInvalid.new( message ), message )
+            raise ActiveRecord::TransactionIsolationConflict.new( message )
           end
           QueuedJob.create!( :job => 'is cool!' )
         end
