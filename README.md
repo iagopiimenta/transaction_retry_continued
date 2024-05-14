@@ -1,28 +1,38 @@
-# transaction_retry
+# Transaction Retry Continued
 
-Retries database transaction on deadlock and transaction serialization errors. Supports MySQL, PostgreSQL, and SQLite.
+> This is a community-driven continuation of the [`transaction_retry`](https://github.com/qertoip/transaction_retry) gem
+for retrying database transactions on deadlock and serialization errors. Originally designed to support MySQL,
+PostgreSQL, and SQLite databases.
 
-## Example
-
-The gem works automatically by rescuing ActiveRecord::TransactionIsolationConflict and retrying the transaction.
+The `transaction_retry` gem enhances transaction reliability by automatically retrying transactions upon encountering
+deadlock and serialization errors in the database.
 
 ## Installation
 
-Add this to your Gemfile:
+Add this line to your application's `Gemfile`:
 
-    gem 'transaction_retry'
+```ruby
+gem 'transaction_retry_continued'
+```
 
-Then run:
+And then execute:
 
-    bundle
+```bash
+bundle install
+```
+
+## Usage
+
+The gem simplifies transaction retry logic by automatically rescuing `ActiveRecord::TransactionIsolationConflict` and
+retrying the transaction.
 
 __It works out of the box with Ruby on Rails__.
 
 If you have a standalone ActiveRecord-based project you'll need to call:
 
+```ruby
     TransactionRetry.apply_activerecord_patch     # after connecting to the database
-
-__after__ connecting to the database.
+```
 
 ## Database deadlock and serialization errors that are retried
 
@@ -46,8 +56,10 @@ __after__ connecting to the database.
 
 You can optionally configure transaction_retry gem in your config/initializers/transaction_retry.rb (or anywhere else):
 
-    TransactionRetry.max_retries = 3
-    TransactionRetry.wait_times = [0, 1, 2, 4, 8, 16, 32]   # seconds to sleep after retry n
+```ruby
+  TransactionRetry.max_retries = 3
+  TransactionRetry.wait_times = [0, 1, 2, 4, 8, 16, 32]   # seconds to sleep after retry n
+```
 
 ## Features
 
@@ -62,10 +74,10 @@ You can optionally configure transaction_retry gem in your config/initializers/t
 
 This gem was initially developed for and successfully works in production at [Kontomierz.pl](http://kontomierz.pl) - the finest Polish personal finance app.
 
-## Requirements
+## Compatibility
 
- * ruby 1.9.2
- * activerecord 3.0.11+
+ * Ruby 2.5, 2.6, 2.7, 3.0, 3.1, 3.2, 3.3
+ * ActiveRecord 5.2, 6.0, 6.1, 7.0
 
 ## Running tests
 

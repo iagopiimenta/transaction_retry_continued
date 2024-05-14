@@ -1,0 +1,177 @@
+name: CI PR Builds
+'on':
+  push:
+    branches:
+      - master
+  pull_request:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby:
+          - '2.5'
+          - '2.7'
+          - '3.0'
+          - '3.1'
+          - '3.2'
+          - '3.3'
+        activerecord:
+          - '5.2'
+          - '6.0'
+          - '6.1'
+          - '7.0'
+        db:
+          - mysql2
+          - sqlite3
+          - skip
+        dbversion:
+          - skip
+        exclude:
+          - ruby: '3.0'
+            activerecord: '5.2'
+          - ruby: '3.1'
+            activerecord: '5.2'
+          - ruby: '3.2'
+            activerecord: '5.2'
+          - ruby: '3.3'
+            activerecord: '5.2'
+          - ruby: '2.5'
+            activerecord: '7.0'
+          - db: skip
+            dbversion: skip
+        include:
+          - ruby: '2.5'
+            activerecord: '5.2'
+            db: postgresql
+            dbversion: '9.6'
+          - ruby: '2.5'
+            activerecord: '6.0'
+            db: postgresql
+            dbversion: '9.6'
+          - ruby: '2.5'
+            activerecord: '6.1'
+            db: postgresql
+            dbversion: '9.6'
+          - ruby: '2.7'
+            activerecord: '5.2'
+            db: postgresql
+            dbversion: '9.6'
+          - ruby: '2.7'
+            activerecord: '6.0'
+            db: postgresql
+            dbversion: '9.6'
+          - ruby: '2.7'
+            activerecord: '6.1'
+            db: postgresql
+            dbversion: '9.6'
+          - ruby: '2.7'
+            activerecord: '7.0'
+            db: postgresql
+            dbversion: '9.6'
+          - ruby: '3.0'
+            activerecord: '6.0'
+            db: postgresql
+            dbversion: '9.6'
+          - ruby: '3.0'
+            activerecord: '6.1'
+            db: postgresql
+            dbversion: '9.6'
+          - ruby: '3.0'
+            activerecord: '7.0'
+            db: postgresql
+            dbversion: '9.6'
+          - ruby: '3.1'
+            activerecord: '6.0'
+            db: postgresql
+            dbversion: '9.6'
+          - ruby: '3.1'
+            activerecord: '6.1'
+            db: postgresql
+            dbversion: '9.6'
+          - ruby: '3.1'
+            activerecord: '7.0'
+            db: postgresql
+            dbversion: '9.6'
+    env:
+      BUNDLE_GEMFILE: "${{ github.workspace }}/gemfiles/activerecord-${{ matrix.activerecord }}/Gemfile.${{ matrix.db }}"
+      MYSQL_DB_HOST: 127.0.0.1
+      MYSQL_DB_USER: root
+      MYSQL_DB_PASS: database
+      MYSQL_DB_NAME: transaction_retry_continued_test
+      POSTGRESQL_DB_HOST: 127.0.0.1
+      POSTGRESQL_DB_USER: transaction_retry_continued
+      POSTGRESQL_DB_PASS: database
+      POSTGRESQL_DB_NAME: transaction_retry_continued_test
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "${{ matrix.ruby }}"
+          bundler-cache: true
+      - name: Run bundle update
+        run: bundle update
+      - name: Start Mysql
+        if: matrix.db == 'mysql2'
+        run: |
+          docker run --rm --detach \
+            -e MYSQL_ROOT_PASSWORD=$MYSQL_DB_PASS \
+            -e MYSQL_DATABASE=transaction_retry_continued_test \
+            -p 3306:3306 \
+            --health-cmd "mysqladmin ping --host=127.0.0.1 --password=$MYSQL_DB_PASS --silent" \
+            --health-interval 5s \
+            --health-timeout 5s \
+            --health-retries 5 \
+            --name database mysql:5.6
+      - name: Start Postgresql
+        if: matrix.db == 'postgresql'
+        run: |
+          docker run --rm --detach \
+            -e POSTGRES_USER=$POSTGRESQL_DB_USER \
+            -e POSTGRES_PASSWORD=$POSTGRESQL_DB_PASS \
+            -e POSTGRES_DB=transaction_retry_continued_test \
+            -p 5432:5432 \
+            --health-cmd "pg_isready -q" \
+            --health-interval 5s \
+            --health-timeout 5s \
+            --health-retries 5 \
+            --name database postgres:${{ matrix.dbversion }}
+      - name: Wait for database to start
+        if: "(matrix.db == 'postgresql' || matrix.db == 'mysql2')"
+        run: |
+          COUNT=0
+          ATTEMPTS=20
+          until [[ $COUNT -eq $ATTEMPTS ]]; do
+            [ "$(docker inspect -f {{.State.Health.Status}} database)" == "healthy" ] && break
+            echo $(( COUNT++ )) > /dev/null
+            sleep 2
+          done
+      - name: test
+        run: echo $BUNDLE_GEMFILE
+      - name: Run tests
+        run: db=${{ matrix.db }} bundle exec rake test
+      - name: Shutdown database
+        if: always() && (matrix.db == 'postgresql' || matrix.db == 'mysql2')
+        run: docker stop database
+#      - name: Coveralls Parallel
+#        if: "${{ !env.ACT }}"
+#        uses: coverallsapp/github-action@master
+#        with:
+#          github-token: "${{ secrets.GITHUB_TOKEN }}"
+#          flag-name: run-${{ matrix.ruby }}-${{ matrix.activerecord }}-${{ matrix.db }}-${{ matrix.dbversion }}
+#          parallel: true
+#  finish:
+#    needs: test
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Coveralls Finished
+#        if: "${{ !env.ACT }}"
+#        uses: coverallsapp/github-action@master
+#        with:
+#          github-token: "${{ secrets.GITHUB_TOKEN }}"
+#          parallel-finished: true
