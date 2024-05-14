@@ -7,21 +7,23 @@ module TransactionRetry
       def self.connect_to_mysql2
         ::ActiveRecord::Base.establish_connection(
           :adapter => "mysql2",
-          :database => "transaction_retry_test",
+          :database => ENV['MYSQL_DB_NAME'],
+          :host => ENV['MYSQL_DB_HOST'],
           :user => 'root',
-          :password => ''
+          :password => ENV['MYSQL_DB_PASS']
         )
       end
-      
+
       def self.connect_to_postgresql
         ::ActiveRecord::Base.establish_connection(
           :adapter => "postgresql",
-          :database => "transaction_retry_test",
-          :user => 'qertoip',
-          :password => 'test123'
+          :database => ENV['POSTGRESQL_DB_NAME'],
+          :host => ENV['POSTGRESQL_DB_HOST'],
+          :user => ENV['POSTGRESQL_DB_USER'],
+          :password => ENV['POSTGRESQL_DB_PASS']
         )
       end
-      
+
       def self.connect_to_sqlite3
         ActiveRecord::Base.establish_connection(
           :adapter => "sqlite3",
