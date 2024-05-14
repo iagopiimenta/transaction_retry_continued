@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 gemspec path: Dir.getwd
 
-gem 'transaction_isolation', git: 'https://github.com/iagopiimenta/transaction_isolation_continued', branch: 'setup-git-workflow'
+gem 'transaction_isolation_continued'
 
 File.exist?(gemfile_local = File.expand_path('./Gemfile.local', Dir.getwd)) and eval File.read(gemfile_local), binding, gemfile_local
