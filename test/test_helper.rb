@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
-# Load test coverage tool (must be loaded before any code)
-# require 'simplecov'
-# SimpleCov.start do
-#  add_filter '/test/'
-#  add_filter '/config/'
-# end
+require 'simplecov'
+require 'simplecov_json_formatter'
+SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
+
+SimpleCov.start do
+  add_filter '/test/'
+end
 
 # Load and initialize the application to be tested
 require 'library_setup'
