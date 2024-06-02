@@ -108,7 +108,7 @@ jobs:
       POSTGRESQL_DB_PASS: database
       POSTGRESQL_DB_NAME: transaction_retry_continued_test
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -116,6 +116,12 @@ jobs:
           bundler-cache: true
       - name: Run bundle update
         run: bundle update
+      - name: Setup Code Climate test-reporter
+        if: github.ref_name == 'master'
+        run: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          ./cc-test-reporter before-build
       - name: Start Mysql
         if: matrix.db == 'mysql2'
         run: |
@@ -158,20 +164,34 @@ jobs:
       - name: Shutdown database
         if: always() && (matrix.db == 'postgresql' || matrix.db == 'mysql2')
         run: docker stop database
-#      - name: Coveralls Parallel
-#        if: "${{ !env.ACT }}"
-#        uses: coverallsapp/github-action@master
-#        with:
-#          github-token: "${{ secrets.GITHUB_TOKEN }}"
-#          flag-name: run-${{ matrix.ruby }}-${{ matrix.activerecord }}-${{ matrix.db }}-${{ matrix.dbversion }}
-#          parallel: true
-#  finish:
-#    needs: test
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Coveralls Finished
-#        if: "${{ !env.ACT }}"
-#        uses: coverallsapp/github-action@master
-#        with:
-#          github-token: "${{ secrets.GITHUB_TOKEN }}"
-#          parallel-finished: true
+      - name: Format coverage
+        if: github.ref_name == 'master'
+        run: |
+          ./cc-test-reporter format-coverage -t simplecov -o coverage/cc_resultset.json
+      - name: Upload reports' artifacts
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage_artifact_ruby_${{ matrix.ruby }}_ar_${{ matrix.activerecord }}_db_${{ matrix.db }}
+          if-no-files-found: ignore
+          path: coverage
+          retention-days: 1
+  finish:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'master'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Code Climate test-reporter
+        run: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+      - name: Download reports' artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: coverage_reports
+          pattern: coverage_artifact_*
+      - name: sum-coverage
+        run: |
+          ./cc-test-reporter sum-coverage coverage_reports/coverage_artifact_ruby*/cc_resultset.json -o coverage/codeclimate.json
+          ./cc-test-reporter upload-coverage -r ${{secrets.CC_TEST_REPORTER_ID}} -i coverage/codeclimate.json

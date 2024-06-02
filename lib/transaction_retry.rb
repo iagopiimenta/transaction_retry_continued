@@ -1,10 +1,11 @@
-require "active_record"
-require "transaction_isolation"
+# frozen_string_literal: true
 
-require_relative "transaction_retry/version"
+require 'active_record'
+require 'transaction_isolation'
+
+require_relative 'transaction_retry/version'
 
 module TransactionRetry
-
   # Must be called after ActiveRecord established a connection.
   # Only then we know which connection adapter is actually loaded and can be enhanced.
   # Please note ActiveRecord does not load unused adapters.
@@ -13,7 +14,7 @@ module TransactionRetry
     require_relative 'transaction_retry/active_record/base'
   end
 
-  if defined?( ::Rails )
+  if defined?(::Rails)
     # Setup applying the patch after Rails is initialized.
     class Railtie < ::Rails::Railtie
       config.after_initialize do
@@ -26,7 +27,7 @@ module TransactionRetry
     @@max_retries ||= 3
   end
 
-  def self.max_retries=( n )
+  def self.max_retries=(n)
     @@max_retries = n
   end
 
@@ -34,7 +35,7 @@ module TransactionRetry
     @@wait_times ||= [0, 1, 2, 4, 8, 16, 32]
   end
 
-  def self.wait_times=( array_of_seconds )
+  def self.wait_times=(array_of_seconds)
     @@wait_times = array_of_seconds
   end
 
@@ -42,8 +43,7 @@ module TransactionRetry
     @@fuzz ||= true
   end
 
-  def self.fuzz=( val )
+  def self.fuzz=(val)
     @@fuzz = val
   end
-
 end

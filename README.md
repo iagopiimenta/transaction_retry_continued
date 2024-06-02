@@ -1,3 +1,8 @@
+[![Gem Version](https://badge.fury.io/rb/transaction_retry_continued.svg)](https://badge.fury.io/rb/transaction_retry_continued)
+[![Maintainability](https://api.codeclimate.com/v1/badges/2a527711b8077f4be2a2/maintainability)](https://codeclimate.com/github/iagopiimenta/transaction_retry_continued/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/2a527711b8077f4be2a2/test_coverage)](https://codeclimate.com/github/iagopiimenta/transaction_retry_continued/test_coverage)
+[![CI PR Builds](https://github.com/iagopiimenta/transaction_retry_continued/actions/workflows/main.yml/badge.svg)](https://github.com/iagopiimenta/transaction_retry_continued/actions/workflows/main.yml)
+
 # Transaction Retry Continued
 
 > This is a community-driven continuation of the [`transaction_retry`](https://github.com/qertoip/transaction_retry) gem
@@ -31,7 +36,7 @@ __It works out of the box with Ruby on Rails__.
 If you have a standalone ActiveRecord-based project you'll need to call:
 
 ```ruby
-    TransactionRetry.apply_activerecord_patch     # after connecting to the database
+TransactionRetry.apply_activerecord_patch     # after connecting to the database
 ```
 
 ## Database deadlock and serialization errors that are retried
@@ -83,13 +88,23 @@ This gem was initially developed for and successfully works in production at [Ko
 
 Run tests on the selected database (mysql2 by default):
 
-    db=mysql2 bundle exec rake test
-    db=postgresql bundle exec rake test
-    db=sqlite3 bundle exec rake test
+```bash
+# passing desired database, active record version and ruby version
+docker compose run -e db=sqlite3 -e BUNDLE_GEMFILE=gemfiles/activerecord-7.0/Gemfile.sqlite3 ruby_2_5 bash -c ./docker/test-ruby.sh
 
-Run tests on all supported databases:
+# db options: mysql2, postgresql, sqlite3
+# active record version options: 5.2, 6.0, 6.1, 7.0
+# ruby version options: 2.5, 2.7, 3.0, 3.1
+```
 
-    ./tests
+Run tests on all supported databases by ruby version:
+
+```bash
+docker compose up ruby_2_5
+docker compose up ruby_2_7
+docker compose up ruby_3_0
+docker compose up ruby_3_1
+```
 
 Database configuration is hardcoded in test/db/db.rb; feel free to improve this and submit a pull request.
 
@@ -99,8 +114,8 @@ You should be very suspicious about any gem that monkey patches your stock Ruby 
 
 This gem is carefully written to not be more intrusive than it needs to be:
 
- * wraps ActiveRecord::Base#transaction class method using alias_method to add new behaviour
- * introduces two new private class methods in ActiveRecord::Base (with names that should never collide)
+- wraps ActiveRecord::Base#transaction class method using alias_method to add new behaviour
+- introduces two new private class methods in ActiveRecord::Base (with names that should never collide)
 
 ## License
 
