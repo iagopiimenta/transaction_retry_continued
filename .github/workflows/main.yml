@@ -117,7 +117,7 @@ jobs:
       - name: Run bundle update
         run: bundle update
       - name: Setup Code Climate test-reporter
-        # if: github.ref_name == 'master'
+        if: github.ref_name == 'master'
         run: |
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
           chmod +x ./cc-test-reporter
@@ -165,6 +165,7 @@ jobs:
         if: always() && (matrix.db == 'postgresql' || matrix.db == 'mysql2')
         run: docker stop database
       - name: Format coverage
+        if: github.ref_name == 'master'
         run: |
           ./cc-test-reporter format-coverage -t simplecov -o coverage/cc_resultset.json
       - name: Upload reports' artifacts
@@ -178,6 +179,7 @@ jobs:
   finish:
     needs: test
     runs-on: ubuntu-latest
+    if: github.ref_name == 'master'
     steps:
       - uses: actions/checkout@v4
       - name: Download Code Climate test-reporter
